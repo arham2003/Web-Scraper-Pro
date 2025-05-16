@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Scraper Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <!-- Additional library for ZIP file downloads -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #4c5869 0%, #8cade2 100%);
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.8rem;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            border: none;
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card-header {
+            background: linear-gradient(45deg, #3a5558, #31cacd);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            font-weight: 600;
+            padding: 15px 20px;
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #3a5558, #31cacd);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(45deg, #67c7ac, #90c5c3);
+        }
+        .feature-icon {
+            background: linear-gradient(45deg, #3a5558, #31cacd);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        .url-input {
+            border-radius: 50px;
+            padding: 12px 20px;
+            box-shadow: 0 2px 10px rgba(215, 207, 207, 0.05);
+            border: 1px solid #e0e0e0;
+        }
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+        }
+        .results-card {
+            display: none;
+        }
+        .loading-spinner {
+            display: none;
+        }
+        .image-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .image-thumbnail {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .image-thumbnail:hover {
+            transform: scale(1.05);
+        }
+        .status-badge {
+            font-size: 0.8rem;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+        /* Notification styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            min-width: 300px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .notification-content {
+            display: flex;
+            align-items: center;
+        }
+        .notification i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        .notification-success i {
+            color: #28a745;
+        }
+        .notification-error i {
+            color: #dc3545;
+        }
+        .notification-info i {
+            color: #17a2b8;
+        }
+        .notification-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #6c757d;
+        }
+        .slide-out {
+            animation: slideOut 0.3s forwards;
+        }
+        @keyframes slideOut {
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark ">
+        <div class="container justify-content-center">
+            <a class="navbar-brand" href="/"><i class="fas fa-wifi me-2"></i>Web Scraper Pro</a>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-globe me-2"></i> Website Content Scraper
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-4">
+                            <div class="feature-icon mx-auto">
+                                <i class="fas fa-file-code"></i>
+                            </div>
+                            <h5>Extract Website Content</h5>
+                            <p class="text-muted">Scrape text, links, and images from any website</p>
+                        </div>
+                        
+                        <form id="websiteForm">
+                            <div class="mb-3">
+                                <label class="form-label">Enter Website URLs (separate multiple URLs with space)</label>
+                                <input type="text" class="form-control url-input" id="websiteUrls" placeholder="https://example.com https://another-site.com">
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Max Scroll Attempts</label>
+                                    <input type="number" class="form-control" id="maxScrolls" name="max_scrolls" value="5" min="1">
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="takeScreenshots" name="take_screenshots">
+                                        <label class="form-check-label" for="takeScreenshots">
+                                            Take Screenshots
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-spider me-2"></i> Start Scraping
+                            </button>
+                        </form>
+                        
+                        <div class="loading-spinner text-center mt-4" id="websiteLoadingSpinner">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Scraping in progress...</p>
+                            <div class="progress mt-2">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="results-card mt-4" id="websiteResults">
+                            <div class="alert alert-success">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1">Scraping Completed!</h5>
+                                        <p class="mb-0" id="websiteResultsSummary"></p>
+                                    </div>
+                                    <span class="status-badge bg-success" id="websiteStatusBadge">Completed</span>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <button class="btn btn-primary" id="downloadWebsiteResults">
+                                    <i class="fas fa-download me-2"></i> Download Results (JSON)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-images me-2"></i> Google Images Scraper
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-4">
+                            <div class="feature-icon mx-auto">
+                                <i class="fas fa-image"></i>
+                            </div>
+                            <h5>Download Google Images</h5>
+                            <p class="text-muted">Search and download images from Google</p>
+                        </div>
+                        
+                        <form id="imagesForm">
+                            <div class="mb-3">
+                                <label class="form-label">Search Query</label>
+                                <input type="text" class="form-control url-input" id="imageQuery" name="query" placeholder="cats with sunglasses">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Number of Images</label>
+                                <input type="number" class="form-control" id="numImages" name="num_images" value="10" min="1" max="100">
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search me-2"></i> Search Images
+                            </button>
+                        </form>
+                        
+                        <div class="loading-spinner text-center mt-4" id="imagesLoadingSpinner">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Searching and downloading images...</p>
+                            <div class="progress mt-2">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="results-card mt-4" id="imagesResults">
+                            <div class="alert alert-success">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1">Image Search Completed!</h5>
+                                        <p class="mb-0" id="imagesResultsSummary"></p>
+                                    </div>
+                                    <span class="status-badge bg-success" id="imagesStatusBadge">Completed</span>
+                                </div>
+                            </div>
+                            <div id="imageGallery" class="image-gallery">
+                                <!-- Images will be added here -->
+                            </div>
+                            <div class="text-center mt-3">
+                                <button class="btn btn-primary" id="downloadAllImages">
+                                    <i class="fas fa-download me-2"></i> Download All Images
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Previous Tasks section will be loaded here -->
+    <div id="previousTasksContainer"></div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0">© 2025 Web Scraper Pro (GRAYCODERS). All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+    <!-- Website form submission handler -->
+    <script>
+    const websiteForm = document.getElementById('websiteForm');
+    websiteForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const urls = document.getElementById('websiteUrls').value.trim();
+        if (!urls) {
+            alert('Please enter at least one URL');
+            return;
+        }
+        
+        const maxScrolls = document.getElementById('maxScrolls').value;
+        const takeScreenshots = document.getElementById('takeScreenshots').checked;
+        
+        const formData = new FormData();
+        formData.append('urls', urls);
+        formData.append('max_scrolls', maxScrolls);
+        if (takeScreenshots) {
+            formData.append('take_screenshots', 'on');
+        }
+        
+        // Show loading spinner until the redirect happens
+        websiteLoadingSpinner.style.display = 'block';
+        
+        // Send request
+        fetch('/scrape_website', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                websiteLoadingSpinner.style.display = 'none';
+                return;
+            }
+            
+            // Save task initial data to localStorage
+            const taskId = data.task_id;
+            const taskData = {
+                type: 'website',
+                status: 'running',
+                urls: urls.split(/\s+/),
+                take_screenshots: takeScreenshots,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Use the taskStorage object from script.js
+            if (typeof taskStorage !== 'undefined') {
+                taskStorage.saveTask(taskId, taskData);
+            }
+            
+            // Redirect to the loading page with the task ID
+            window.location.href = `/loading/${taskId}`;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+            websiteLoadingSpinner.style.display = 'none';
+        });
+    });
+    </script>
+
+    <!-- Images form submission handler -->
+    <script>
+    const imagesForm = document.getElementById('imagesForm');
+    imagesForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const query = document.getElementById('imageQuery').value.trim();
+        if (!query) {
+            alert('Please enter a search query');
+            return;
+        }
+        
+        const numImages = document.getElementById('numImages').value;
+        
+        const formData = new FormData();
+        formData.append('query', query);
+        formData.append('num_images', numImages);
+        
+        // Show loading spinner until the redirect happens
+        imagesLoadingSpinner.style.display = 'block';
+        
+        // Send request
+        fetch('/scrape_images', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                imagesLoadingSpinner.style.display = 'none';
+                return;
+            }
+            
+            // Save task initial data to localStorage
+            const taskId = data.task_id;
+            const taskData = {
+                type: 'images',
+                status: 'running',
+                query: query,
+                num_images: numImages,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Use the taskStorage object from script.js
+            if (typeof taskStorage !== 'undefined') {
+                taskStorage.saveTask(taskId, taskData);
+            }
+            
+            // Redirect to the loading page with the task ID
+            window.location.href = `/loading/${taskId}`;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+            imagesLoadingSpinner.style.display = 'none';
+        });
+    });
+    </script>
+</body>
+</html> 

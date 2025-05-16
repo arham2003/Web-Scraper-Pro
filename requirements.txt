@@ -1,0 +1,18 @@
+# Web Framework
+flask>=2.3.0
+werkzeug>=2.3.0
+
+# Web Scraping
+selenium>=4.0.0
+beautifulsoup4>=4.0.0
+lxml>=4.9.0
+
+# Utilities
+requests>=2.0.0
+pillow>=10.0.0
+python-dotenv>=1.0.0
+urllib3>=2.0.0
+
+# Development
+pytest>=7.0.0
+pytest-flask>=1.0.0 

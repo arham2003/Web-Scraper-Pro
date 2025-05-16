@@ -1,0 +1,184 @@
+/* Main Styling for Web Scraper Pro */
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #3a7bd5, #00d2ff);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, #2d6ccd, #00b8e6);
+}
+
+/* Additional Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.slide-up {
+    animation: slideUp 0.5s ease-in-out;
+}
+
+/* Card Enhancements */
+.card {
+    overflow: hidden;
+    animation: fadeIn 0.6s ease-in-out;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(rgba(58, 123, 213, 0.1), transparent 70%);
+    z-index: 0;
+}
+
+/* Form Enhancements */
+.form-control:focus {
+    border-color: #3a7bd5;
+    box-shadow: 0 0 0 0.2rem rgba(58, 123, 213, 0.25);
+}
+
+/* Button Pulse Effect */
+.btn-pulse {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(58, 123, 213, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(58, 123, 213, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(58, 123, 213, 0);
+    }
+}
+
+/* Image Gallery Enhancements */
+.image-gallery {
+    justify-content: center;
+}
+
+.image-thumbnail {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.image-thumbnail:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Progress Bar Animation */
+.progress-bar-animated {
+    background-size: 30px 30px;
+    background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.15) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.15) 75%,
+        transparent 75%,
+        transparent
+    );
+}
+
+/* Task Status Animation */
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.status-running {
+    animation: blink 1s infinite;
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 20px;
+    }
+    
+    .feature-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+    
+    .navbar-brand {
+        font-size: 1.4rem;
+    }
+    
+    .card-header {
+        padding: 10px 15px;
+    }
+    
+    .btn-primary {
+        padding: 8px 16px;
+    }
+    
+    .image-thumbnail {
+        width: 120px;
+        height: 120px;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .card {
+        background-color: #2d3748;
+        color: #e2e8f0;
+    }
+    
+    .text-muted {
+        color: #a0aec0 !important;
+    }
+    
+    .form-control {
+        background-color: #1a202c;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+    
+    .form-control:focus {
+        background-color: #2d3748;
+    }
+}
+
+/* Safari/iOS Specific Fixes */
+@supports (-webkit-overflow-scrolling: touch) {
+    .btn-primary {
+        padding-top: 11px;
+        padding-bottom: 9px;
+    }
+    
+    .form-control {
+        -webkit-appearance: none;
+    }
+} 
