@@ -8,6 +8,8 @@ import io
 import zipfile
 from datetime import datetime
 from selenium_scraper.script import setup_driver, scrape_websites, scrape_google_images
+import sys
+import tempfile
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -97,7 +99,10 @@ def scrape_website():
         driver = None
         try:
             add_log(task_id, "Setting up browser...")
-            driver = setup_driver(headless=False)
+            # Use headless mode and unique user data directory for Render deployment
+            is_render = os.environ.get('RENDER') == 'true'
+            user_data_dir = os.path.join(tempfile.mkdtemp(), f"chrome_data_{task_id}")
+            driver = setup_driver(headless=True if is_render else False, user_data_dir=user_data_dir)
             
             add_log(task_id, "Beginning scraping process...")
             results, screenshots = scrape_websites(driver, processed_urls, output_file, max_scrolls, take_screenshots)
@@ -175,7 +180,10 @@ def scrape_images():
         driver = None
         try:
             add_log(task_id, "Setting up browser...")
-            driver = setup_driver(headless=False)
+            # Use headless mode and unique user data directory for Render deployment
+            is_render = os.environ.get('RENDER') == 'true'
+            user_data_dir = os.path.join(tempfile.mkdtemp(), f"chrome_data_{task_id}")
+            driver = setup_driver(headless=True if is_render else False, user_data_dir=user_data_dir)
             
             add_log(task_id, f"Searching Google Images for '{query}'...")
             # Pass the number of images to search for

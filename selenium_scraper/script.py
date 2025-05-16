@@ -11,6 +11,7 @@ import urllib.request
 import re
 from datetime import datetime
 from urllib.parse import urlparse, urljoin
+import tempfile
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -33,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 # ===== Selenium Scraper Functions =====
 
-def setup_driver(headless=False):
+def setup_driver(headless=False, user_data_dir=None):
     
     options = Options()
     if headless:
@@ -43,6 +44,10 @@ def setup_driver(headless=False):
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920,1080")
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36")
+    
+    # Add user data directory if specified
+    if user_data_dir:
+        options.add_argument(f"--user-data-dir={user_data_dir}")
     
     driver = webdriver.Chrome(options=options)
     logger.info("Selenium WebDriver initialized successfully")
@@ -435,7 +440,9 @@ def scrape_google_images(driver, query, num_images=20, output_folder="output/ima
 
 def main():
 
-    driver = setup_driver(headless=False)
+    # Create a unique user data directory
+    user_data_dir = os.path.join(tempfile.mkdtemp(), "chrome_data")
+    driver = setup_driver(headless=False, user_data_dir=user_data_dir)
     
     try:
         while True:
